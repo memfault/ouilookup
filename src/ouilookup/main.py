@@ -48,6 +48,20 @@ class OuiLookup:
         for term in terms:
             if len(term) < 1:
                 continue
+
+            # Check for Locally Assigned bit
+            # https://datatracker.ietf.org/doc/html/rfc7042#section-2.1
+            if len(term) >= 2:
+                try:
+                    first_byte = int(term[:2], 16)
+                    # Check if the second least significant bit (bit 1) is set
+                    if first_byte & 0x02:
+                        response.append({term: "Locally Assigned"})
+                        continue
+                except ValueError:
+                    # If we can't parse the first byte as hex, continue with normal lookup
+                    pass
+
             term_found = False
             for vendor_key, vendor_name in data["vendors"].items():
                 if term.startswith(vendor_key):

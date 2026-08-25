@@ -94,7 +94,10 @@ class OuiLookup:
             source_data_file = os.path.join(temp_path, "oui.txt")
             logger.debug(f"OuiLookup.update() - download source data file from {__data_source_url__!r}")
             try:
-                urllib.request.urlretrieve(__data_source_url__, source_data_file)
+                # some servers return HTTP 418 for the default urllib user-agent, so emulate curl
+                request = urllib.request.Request(__data_source_url__, headers={"User-Agent": "curl/8.5.0"})
+                with urllib.request.urlopen(request) as response, open(source_data_file, "wb") as out_file:
+                    out_file.write(response.read())
             except Exception as e:
                 raise OuiLookupException(f"Unable to download from data source {str(e)}")
         else:
